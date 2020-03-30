@@ -1,0 +1,11 @@
+---
+- name: Provision Image
+  hosts: default
+  become: true
+  tasks:
+    - name: Install nginx
+      apt: name=nginx state=latest
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
