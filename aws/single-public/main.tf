@@ -116,11 +116,11 @@ resource "aws_route_table_association" "a" {
 }
 
 output "ssh-connection" {
-  value = "Connect to web server instance using: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_eip.elastic-ip.private_dns}"
+  value = "Connect to web server instance using: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_eip.elastic-ip.public_dns}"
 }
 
 output "test-endpoint" {
-  value = "Test endpoint using:  curl http://${aws_eip.elastic-ip.private_dns}"
+  value = "Test endpoint using:  curl http://${aws_eip.elastic-ip.public_dns}"
 }
 
 
