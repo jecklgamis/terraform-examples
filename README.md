@@ -1,6 +1,6 @@
 ## terraform-examples
 
-Some working  examples for provisioning AWS resources using Terraform.
+Some working Terraform examples for provisioning AWS resources.
 
 * loadbalanced-ec2 -  auto scaled internet facing EC2 app
 * loadbalanced-ecs -  auto scaled internet facing ECS app
