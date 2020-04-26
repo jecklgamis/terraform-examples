@@ -5,7 +5,7 @@ Some working  examples for provisioning AWS resources using Terraform.
 * loadbalanced-ec2 -  auto scaled internet facing EC2 app
 * loadbalanced-ecs -  auto scaled internet facing ECS app
 * privatelink -  2 VPCs with VPC endpoint connection
-* single-public -  single VPC with 1 public subnet and EC2 node with nginx
+* single-public -  single VPC with 1 public subnet
 * single-public-single-private - single VPC with 1 public and 1 private subnet
 
 
