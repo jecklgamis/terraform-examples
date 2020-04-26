@@ -3,6 +3,11 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
+resource "aws_key_pair" "deployer" {
+  key_name = "deployer-key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
+}
+
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
@@ -70,7 +75,7 @@ resource "aws_security_group" "web-sg" {
 }
 
 resource "aws_instance" "web-server" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.public-subnet.id
   vpc_security_group_ids = [
@@ -79,7 +84,7 @@ resource "aws_instance" "web-server" {
   key_name = aws_key_pair.deployer.key_name
   tags = {
     Name = "web-server"
-    BaseImageId = "ami-0f355ac876f669b84"
+    BaseImageId = "ami-033661d1b9a6874e0"
   }
 }
 
@@ -88,11 +93,6 @@ resource "aws_eip" "elastic-ip" {
   vpc = true
   depends_on = [
     aws_internet_gateway.internet-gw]
-}
-
-resource "aws_key_pair" "deployer" {
-  key_name = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
 }
 
 resource "aws_route_table" "route-1" {
@@ -113,24 +113,12 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.route-1.id
 }
 
-data "aws_route_tables" "rts" {
-  vpc_id = aws_vpc.main.id
+output "ssh-connection" {
+  value = "Connect to web server instance using: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_eip.elastic-ip.private_dns}"
 }
 
-output "route-tables" {
-  value = data.aws_route_tables.rts
-}
-
-output "web-server-public-ip" {
-  value = aws_instance.web-server.public_ip
-}
-
-output "connect-instruction" {
-  value = "ssh -i  ~/.ssh/id_rsa ubuntu@${aws_instance.web-server.public_ip}"
-}
-
-output "test-curl-instruction" {
-  value = "curl http://${aws_instance.web-server.public_ip}"
+output "test-endpoint" {
+  value = "Test endpoint using:  curl http://${aws_eip.elastic-ip.private_dns}"
 }
 
 

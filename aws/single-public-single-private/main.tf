@@ -3,7 +3,11 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-## Step 1: Create the VPC
+resource "aws_key_pair" "deployer" {
+  key_name = "deployer-key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
+}
+
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
@@ -18,7 +22,6 @@ resource "aws_internet_gateway" "internet-gw" {
   }
 }
 
-## Create NAT gateway and EIP for private subnet connection to internet
 resource "aws_eip" "nat-gw" {
   vpc = true
   depends_on = [
@@ -54,7 +57,6 @@ resource "aws_route" "r" {
   nat_gateway_id = aws_nat_gateway.nat-gw-1.id
 }
 
-## Step 2: Create a Security Group
 resource "aws_security_group" "web-sg" {
   name = "web-sg"
   description = "Allow all traffic"
@@ -90,8 +92,8 @@ resource "aws_security_group" "web-sg" {
   }
 }
 
-resource "aws_security_group" "database-sg" {
-  name = "database-sg"
+resource "aws_security_group" "backend-sg" {
+  name = "backend-sg"
   description = "Allow all traffic"
   vpc_id = aws_vpc.main.id
 
@@ -121,11 +123,10 @@ resource "aws_security_group" "database-sg" {
       "0.0.0.0/0"]
   }
   tags = {
-    Name = "database-sg"
+    Name = "backend-sg"
   }
 }
 
-# Step 3: Launch an Instance into Your VPC
 resource "aws_instance" "web-server" {
   ami = "ami-02d7e25c1cfdd5695"
   instance_type = "t2.micro"
@@ -139,30 +140,24 @@ resource "aws_instance" "web-server" {
   }
 }
 
-resource "aws_instance" "database-server" {
+resource "aws_instance" "backend-server" {
   ami = "ami-02d7e25c1cfdd5695"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.private-subnet.id
   vpc_security_group_ids = [
-    aws_security_group.database-sg.id
+    aws_security_group.backend-sg.id
   ]
   key_name = aws_key_pair.deployer.key_name
   tags = {
-    Name = "database-server"
+    Name = "backend-server"
   }
 }
 
-## Step 4: Assign an Elastic IP Address to Your Instance
 resource "aws_eip" "elastic-ip" {
   instance = aws_instance.web-server.id
   vpc = true
   depends_on = [
     aws_internet_gateway.internet-gw]
-}
-
-resource "aws_key_pair" "deployer" {
-  key_name = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
 }
 
 resource "aws_route_table" "route-1" {
@@ -183,29 +178,21 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.route-1.id
 }
 
-## Display some output
-
-output "main-route-table" {
-  value = aws_vpc.main.default_route_table_id
-}
-
-data "aws_route_tables" "rts" {
-  vpc_id = aws_vpc.main.id
-}
-
-output "route-tables" {
-  value = data.aws_route_tables.rts
-}
-
 output "web-server-public-ip" {
   value = aws_instance.web-server.public_ip
 }
 
-output "connect-to-web-instance-howto" {
-  value = "Connect to web server instance: ssh -i  ~/.id_rsa ubuntu@${aws_instance.web-server.public_ip}"
+output "front-end-app-ssh" {
+  value = "Connect to web server instance: ssh -i  ~/.id_rsa ubuntu@${aws_instance.web-server.public_dns}"
 }
-output "connect-to-db-instance-howto" {
-  value = "Connect to db instance: ssh -i  ~/.id_rsa ubuntu@${aws_instance.database-server.public_ip}"
+
+output "front-end-app-curl" {
+  value = "Test web service endpoint: curl http://${aws_eip.elastic-ip}"
 }
+
+output "backend-app-ssh" {
+  value = "Connect to backend instance: ssh -i  ~/.id_rsa ubuntu@${aws_instance.backend-server.public_dns}"
+}
+
 
 

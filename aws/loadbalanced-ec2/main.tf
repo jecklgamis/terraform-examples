@@ -166,7 +166,7 @@ resource "aws_route_table_association" "add-dmz-2" {
 }
 
 resource "aws_instance" "jump-box-1" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.dmz-1.id
   vpc_security_group_ids = [
@@ -214,7 +214,7 @@ resource "aws_lb_listener" "frontend-http-listener" {
 # create launch config for autoscaling group for frontend apps
 resource "aws_launch_configuration" "frontend-launch-config" {
   name = "frontend-launch-config"
-  image_id = "ami-0f355ac876f669b84"
+  image_id = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   security_groups = [
     aws_security_group.webapp-sg.id]
@@ -223,7 +223,7 @@ resource "aws_launch_configuration" "frontend-launch-config" {
 resource "aws_autoscaling_group" "frontend-asg" {
   name = "frontend-asg"
   launch_configuration = aws_launch_configuration.frontend-launch-config.id
-  min_size = 1
+  min_size = 2
   max_size = 4
   lifecycle {
     create_before_destroy = true

@@ -9,16 +9,5 @@
         "hostPort": 80
       }
     ]
-  },
-  {
-    "name": "envoy-sidecar",
-    "image": "envoyproxy/envoy-alpine:v1.13.1",
-    "essential": true,
-    "portMappings": [
-      {
-        "containerPort": 9901,
-        "hostPort": 9901
-      }
-    ]
   }
 ]

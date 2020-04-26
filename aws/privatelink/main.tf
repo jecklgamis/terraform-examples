@@ -174,7 +174,6 @@ resource "aws_security_group" "endpoint-sg" {
   }
 }
 
-
 resource "aws_route_table" "dmz" {
   vpc_id = aws_vpc.main.id
   route {
@@ -192,7 +191,7 @@ resource "aws_route_table_association" "add-dmz-1" {
 }
 
 resource "aws_instance" "jump-box-1" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.dmz-1.id
   vpc_security_group_ids = [
@@ -206,7 +205,7 @@ resource "aws_instance" "jump-box-1" {
 }
 
 resource "aws_instance" "backend-app-1" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.app-a.id
   vpc_security_group_ids = [
@@ -219,7 +218,7 @@ resource "aws_instance" "backend-app-1" {
 }
 
 resource "aws_instance" "backend-app-2" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.app-b.id
   vpc_security_group_ids = [
@@ -278,7 +277,6 @@ output "jump-box-1" {
   value = "Connect to jump box using : ssh -i ~/.ssh/id_rsa ubuntu@${aws_instance.jump-box-1.public_ip}"
 }
 
-#***********************************************************************************************************************
 resource "aws_vpc_endpoint" "vpce-s3" {
   vpc_id = aws_vpc.main.id
   service_name = "com.amazonaws.ap-southeast-2.s3"
@@ -305,9 +303,7 @@ resource "aws_vpc_endpoint" "vpce-to-vpc2-service" {
   ]
 }
 
-########################################################################################################################
-# Second VPC (Kanagawa)
-#########################################################################################################################
+## vpc2
 resource "aws_vpc" "vpc2" {
   cidr_block = "10.0.0.0/16"
   tags = {
@@ -466,7 +462,7 @@ resource "aws_security_group" "vpc2-lb-sg" {
 }
 
 resource "aws_instance" "vpc2-jump-box-1" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.vpc2-dmz-1.id
   vpc_security_group_ids = [
@@ -480,7 +476,7 @@ resource "aws_instance" "vpc2-jump-box-1" {
 }
 
 resource "aws_instance" "vpc2-backend-app-1" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.vpc2-app-a.id
   vpc_security_group_ids = [
@@ -493,7 +489,7 @@ resource "aws_instance" "vpc2-backend-app-1" {
 }
 
 resource "aws_instance" "vpc2-backend-app-2" {
-  ami = "ami-0f355ac876f669b84"
+  ami = "ami-033661d1b9a6874e0"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.vpc2-app-b.id
   vpc_security_group_ids = [
