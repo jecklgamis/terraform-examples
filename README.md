@@ -29,17 +29,17 @@ the AMI references.
 
 3. Run Terraform!
 
-Initialize
+Initialize Terraform
 ```
-terraform init
+$ terraform init
 ```
 Run terraform apply to provision the resources
 ```
-terraform apply -auto-approve
+$ terraform apply -auto-approve
 ```
 Run terraform destroy to delete the resources
 ```
-terraform destroy -auto-approve
+$ terraform destroy -auto-approve
 ```
 
 Have fun!
