@@ -2,24 +2,29 @@
 
 Some working Terraform examples for provisioning AWS resources.
 
-* loadbalanced-ec2 -  auto scaled internet facing EC2 app
-* loadbalanced-ecs -  auto scaled internet facing ECS app
-* privatelink -  2 VPCs with VPC endpoint connection
-* single-public -  single VPC with 1 public subnet
-* single-public-single-private - single VPC with 1 public and 1 private subnet
+1. single-public -  single VPC with 1 public subnet
+2. single-public-single-private - single VPC with 1 public and 1 private subnet
+3. loadbalanced-ec2 -  auto scaled internet facing EC2 app
+4. loadbalanced-ecs -  auto scaled internet facing ECS app
+5. privatelink -  2 VPCs with VPC endpoint connection
 
+## One-off Setup
+
+* Create an AWS account. You will need a credit card and a mobile, confirm registration email to ensure setup complete.
+* Download and Install awscli(v2): https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html
+* Create a non-root user and download credentials and run `aws configure`
 
 ## Running
 Ensure:
 * You have configured your AWS credentials with appropriate permission to the AWS resources (EC2, ECS, IAM, VPC)
-* You have Terraform installed, (Mac OSX: `brew install terraform`)
+* You have Terraform installed, (Mac OSX: `brew install terraform` and `brew install ruby` if required)
 * You have installed `packer` if you're gonna build your own custom AMI used in the examples.
 
-1. In the `main.tf` file, replace `public_key` with your public key. This is used for SSH logins.
+1. In the `main.tf` file, replace `public_key` with your public key file location. This is used for SSH logins.
 ```
 resource "aws_key_pair" "deployer" {
   key_name = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 ```
 
