@@ -101,7 +101,7 @@ resource "aws_route_table" "route-1" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = "10.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.internet-gw.id
   }
 
@@ -116,11 +116,11 @@ resource "aws_route_table_association" "a" {
 }
 
 output "ssh-connection" {
-  value = "Connect to web server instance using: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_eip.elastic-ip.private_dns}"
+  value = "Connect to web server instance using: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_eip.elastic-ip.public_dns}"
 }
 
 output "test-endpoint" {
-  value = "Test endpoint using:  curl http://${aws_eip.elastic-ip.private_dns}"
+  value = "Test endpoint using:  curl http://${aws_eip.elastic-ip.public_dns}"
 }
 
 
