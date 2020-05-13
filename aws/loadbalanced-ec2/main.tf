@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_key_pair" "deployer" {
   key_name = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 
 resource "aws_vpc" "main" {
@@ -94,8 +94,9 @@ resource "aws_security_group" "webapp-sg" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+    security_groups = [
+      aws_security_group.bastion-sg.id
+    ]
   }
   egress {
     from_port = 0
@@ -146,7 +147,7 @@ resource "aws_security_group" "lb-sg" {
 resource "aws_route_table" "dmz" {
   vpc_id = aws_vpc.main.id
   route {
-    cidr_block = "10.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.internet-gw.id
   }
   tags = {
@@ -166,7 +167,7 @@ resource "aws_route_table_association" "add-dmz-2" {
 }
 
 resource "aws_instance" "jump-box-1" {
-  ami = "ami-033661d1b9a6874e0"
+  ami = "ami-00410da67df17ecc5"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.dmz-1.id
   vpc_security_group_ids = [
@@ -213,8 +214,9 @@ resource "aws_lb_listener" "frontend-http-listener" {
 
 # create launch config for autoscaling group for frontend apps
 resource "aws_launch_configuration" "frontend-launch-config" {
-  name = "frontend-launch-config"
-  image_id = "ami-033661d1b9a6874e0"
+  name = "frontend-launch-config-${random_id.id.hex}"
+  image_id = "ami-00410da67df17ecc5"
+  key_name = aws_key_pair.deployer.key_name
   instance_type = "t2.micro"
   security_groups = [
     aws_security_group.webapp-sg.id]
@@ -248,6 +250,10 @@ resource "aws_autoscaling_policy" "frontend-asg-target-tracking" {
     }
     target_value = 5
   }
+}
+
+resource "random_id" "id" {
+  byte_length = 8
 }
 
 output "jump-box-1" {
