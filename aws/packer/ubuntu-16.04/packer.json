@@ -22,13 +22,25 @@
       },
       "instance_type": "t2.micro",
       "ssh_username": "ubuntu",
-      "ami_name": "jecklgamis-ami-ubuntu-16.04"
+      "ami_name": "fanjieyaoji-ami-ubuntu-16.04"
     }
   ],
   "provisioners": [
     {
       "type": "ansible",
       "playbook_file": "./ansible/playbook.yml"
+    },
+    {
+      "type": "file",
+      "source": "./version.json",
+      "destination": "/home/ubuntu/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo cp /home/ubuntu/version.json /var/www/html/",
+        "cat /var/www/html/version.json"
+      ]
     }
   ]
 }
