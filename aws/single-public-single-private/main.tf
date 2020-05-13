@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_key_pair" "deployer" {
   key_name = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+A1zey3kk7XI48LQqguIdEtUk2FvSlPA0U2q25OORSXd6OUoUYNFTfaZ5EsFqpW7kH2/tlwolaqbPvsh3ASFY2Y8AIVrXonkIDY3XpSLdb12ijLcg9XNAMrBnN6OZ9arY5b/0gS9+o7ebhMnV4+6HA5m7jzz5a2o/SH5f6v5EjngX19Hqbvpa1/vzVSO+gQK3ERflPLGhnZdoy+OwnAyjkaKMwbOilXzYJrUDPj9PXP52p474LZHGeSGgcx0HIGyp58d4Lp41J/8bPoEW0hhyzuTZlQdg+z0KnvSF1INcrQqQTEfTn5mETuhdECw+v8qQNXmhjaMB+q8h6tI/LbLv jeck@blackpine.local"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 
 resource "aws_vpc" "main" {
@@ -53,7 +53,7 @@ resource "aws_subnet" "private-subnet" {
   }
 }
 
-resource "aws_route" "r" {
+resource "aws_route" "rt-default" {
   route_table_id = aws_vpc.main.default_route_table_id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id = aws_nat_gateway.nat-gw-1.id
@@ -110,8 +110,9 @@ resource "aws_security_group" "webapp-sg" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+    security_groups = [
+      aws_security_group.bastion-sg.id
+    ]
   }
   egress {
     from_port = 0
@@ -153,8 +154,9 @@ resource "aws_security_group" "backend-sg" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+    security_groups = [
+      aws_security_group.bastion-sg.id
+    ]
   }
 
   egress {
@@ -217,20 +219,20 @@ resource "aws_eip" "elastic-ip" {
     aws_internet_gateway.internet-gw]
 }
 
-resource "aws_route_table" "route-1" {
+resource "aws_route_table" "rt-public" {
   vpc_id = aws_vpc.main.id
   route {
-    cidr_block = "10.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.internet-gw.id
   }
   tags = {
-    Name = "route-1"
+    Name = "rt-public"
   }
 }
 
-resource "aws_route_table_association" "a" {
+resource "aws_route_table_association" "rta-public" {
   subnet_id = aws_subnet.public-subnet.id
-  route_table_id = aws_route_table.route-1.id
+  route_table_id = aws_route_table.rt-public.id
 }
 
 output "web-server-public-ip" {
@@ -242,7 +244,7 @@ output "jumpbox-ssh" {
 }
 
 output "front-end-app-ssh" {
-  value = "Connect to web [server instance: ssh -i  ~/.ssh/id_rsa ubuntu@${aws_instance.web-server.public_dns}"
+  value = "Connect to web server instance (from jump box): ssh -i  ~/.ssh/id_rsa ubuntu@${aws_instance.web-server.private_ip}"
 }
 
 output "backend-app-ssh" {
